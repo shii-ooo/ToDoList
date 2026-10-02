@@ -37,6 +37,7 @@
 
         let tasks = [];
 
+        //　ストレージにあるデータをtasks[]に追加
         const data = localStorage.getItem("tasks");
         if (data) {
             tasks = JSON.parse(data);
@@ -44,6 +45,7 @@
         render();
         updateCount();
 
+        // 残り何件か数える
         function updateCount() {
             const remainingTasks = tasks.filter(function (task) {
                 return !task.done;
@@ -57,20 +59,10 @@
             localStorage.setItem("tasks", JSON.stringify(tasks));
         }
 
+        // HRMLを追加する
         function render() {
 
             list.innerHTML = "";
-            /*
-            innerHTMLは「そのHTMLタグの中身」を見る・変更するためのもの
-            <ul id="list">
-                <li>掃除</li>
-                <li>買い物</li>
-            </ul>
-            が
-            <ul id="list">
-            </ul>
-            */
-
             tasks.forEach(function (task) {
                 const li = document.createElement("li");
                 li.textContent = task.text;
@@ -80,11 +72,9 @@
                 }
 
                 li.dataset.id = task.id;
-                //li.dataset.idは画面に表示されている<li>に番号を覚えさせるためのもの
-                //<li data-id="12345">掃除</li>みたいになる
 
-                const doneButton = document.createElement("button"); //HTMLに<button>を追加
-                doneButton.textContent = "完了"; //<button></button>が<button>完了</button>になる
+                const doneButton = document.createElement("button");
+                doneButton.textContent = "完了";
 
                 const deleteButton = document.createElement("button");
                 deleteButton.textContent = "削除";
@@ -96,8 +86,6 @@
                     })
                     task.done = !task.done;
 
-                    // li.classList.toggle("done"); //<li>買い物</li>が<li class="done">買い物</li>になる
-
                     update();
 
                 })
@@ -107,18 +95,14 @@
                     tasks = tasks.filter(function (task) {
                         return Number(li.dataset.id) !== task.id;
                     })
-                    //filter()→その一個を除いて残す 配列を返す
-                    // filterはtrueになったものを残して、新しい配列を作るメソッド
-
-                    // li.remove(); //消える
 
                     update();
 
                 })
 
-                li.appendChild(doneButton);//liの間に<button>を挿入
+                li.appendChild(doneButton);
                 li.appendChild(deleteButton);
-                list.appendChild(li);//<ul id="list"></ul>の間に<li>を挿入
+                list.appendChild(li);
 
             })
 
@@ -128,20 +112,15 @@
 
         //追加を押したら走る処理
         form.addEventListener("submit", function (event) {
-            //対象.addEventListener("何か起きたら", 処理)なので
-            //fromがsubmitされたら、eventを実行してくださいということ
             event.preventDefault();
-            //ブラウザが最初から用意している通常の動きを止める（submitなので送信更新しないでねってこと）
 
-            const input = form.querySelector("input[type='text']");//条件に合う最初の一個を取得する
-            //document.querySelector("p")だと、HTMLのなかから、最初の<p>を探す
-            //form.querySelector("input[type='text']")なら、fromの中からinputのtype,textを探す
+            const input = form.querySelector("input[type='text']");
 
             tasks.push({
                 id: Date.now(),
                 text: input.value,
                 done: false
-            });  //push()は配列の最後にデータを追加するメソッド
+            });
 
             update();
 
