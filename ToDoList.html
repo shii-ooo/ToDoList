@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDoリスト</title>
+    <style>
+        .done {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>しごとリスト</h1>
+        <p>残り<span id="count">0</span>件</p>
+    </header>
+
+    <form id="form">
+        <input type="text" placeholder="やることを入力・・・">
+        <input type="submit" value="追加">
+    </form>
+
+    <button class="filter">すべて</button>
+    <button class="filter">未完了</button>
+    <button class="filter">完了</button>
+
+    <ul id="list"></ul>
+
+    <script>
+        const form = document.getElementById("form");
+        const list = document.getElementById("list");
+        const buttons = document.querySelectorAll(".filter");
+        const count = document.getElementById("count");
+
+        let tasks = [];
+
+        //未完了の処理が何件か数える処理
+        function updateCount() {
+            const remainingTasks = tasks.filter(function (task) {
+                return !task.done;
+            })
+            count.textContent = remainingTasks.length;
+        }
+
+        function update() {
+            render();
+            updateCount();
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            // JSON.stringify(tasks); 配列 → 文字列
+            // JSON.parse(data);      文字列 → 配列　にして”tasks”としてlocalStrageに保存する
+        }
+
+        const data = localStorage.getItem("tasks"); //localStrageのデータを文字列として取得
+        if (data) {
+            tasks = JSON.parse(data);
+        }
+        //Javaではできないが、JavaSciptだとnullならfalse、値あればtrue
+        render();
+        updateCount();
+
+        function render() {
+
+            list.innerHTML = "";
+            /*
+            innerHTMLは「そのHTMLタグの中身」を見る・変更するためのもの
+            <ul id="list">
+                <li>掃除</li>
+                <li>買い物</li>
+            </ul>
+            が
+            <ul id="list">
+            </ul>
+            */
+
+            tasks.forEach(function (task) {
+                const li = document.createElement("li");
+                li.textContent = task.text;
+
+                if (task.done) {
+                    li.classList.add("done");
+                }
+
+                li.dataset.id = task.id;
+                //li.dataset.idは画面に表示されている<li>に番号を覚えさせるためのもの
+                //<li data-id="12345">掃除</li>みたいになる
+
+                const doneButton = document.createElement("button"); //HTMLに<button>を追加
+                doneButton.textContent = "完了"; //<button></button>が<button>完了</button>になる
+
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "削除";
+
+                doneButton.addEventListener("click", function () {
+
+                    const task = tasks.find(function (task) {
+                        return Number(li.dataset.id) === task.id;
+                    })
+                    task.done = !task.done;
+
+                    // li.classList.toggle("done"); //<li>買い物</li>が<li class="done">買い物</li>になる
+
+                    update();
+
+                })
+
+                deleteButton.addEventListener("click", function () {
+
+                    tasks = tasks.filter(function (task) {
+                        return Number(li.dataset.id) !== task.id;
+                    })
+                    //filter()→その一個を除いて残す 配列を返す
+                    // filterはtrueになったものを残して、新しい配列を作るメソッド
+
+                    // li.remove(); //消える
+
+                    update();
+
+                })
+
+                li.appendChild(doneButton);//liの間に<button>を挿入
+                li.appendChild(deleteButton);
+                list.appendChild(li);//<ul id="list"></ul>の間に<li>を挿入
+
+            })
+
+
+
+        }
+
+        //追加を押したら走る処理
+        form.addEventListener("submit", function (event) {
+            //対象.addEventListener("何か起きたら", 処理)なので
+            //fromがsubmitされたら、eventを実行してくださいということ
+            event.preventDefault();
+            //ブラウザが最初から用意している通常の動きを止める（submitなので送信更新しないでねってこと）
+
+            const input = form.querySelector("input[type='text']");//条件に合う最初の一個を取得する
+            //document.querySelector("p")だと、HTMLのなかから、最初の<p>を探す
+            //form.querySelector("input[type='text']")なら、fromの中からinputのtype,textを探す
+
+            tasks.push({
+                id: Date.now(),
+                text: input.value,
+                done: false
+            });  //push()は配列の最後にデータを追加するメソッド
+
+            update();
+
+            input.value = "";
+
+        })
+
+        //未完了、完了、すべてをボタンにより表示させる処理
+        buttons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                console.log(button.textContent);
+
+                const items = list.querySelectorAll("li");
+
+                items.forEach(function (item) {
+                    if (button.textContent === "未完了") {
+                        if (item.classList.contains("done")) {
+                            item.style.display = "none";
+                        } else {
+                            item.style.display = "";
+                        }
+                    }
+
+                    if (button.textContent === "完了") {
+                        if (item.classList.contains("done")) {
+                            item.style.display = "";
+                        } else {
+                            item.style.display = "none";
+                        }
+                    }
+
+                    if (button.textContent === "すべて") {
+                        item.style.display = "";
+                    }
+                })
+            })
+        })
+
+    </script>
+</body>
+
+</html>
