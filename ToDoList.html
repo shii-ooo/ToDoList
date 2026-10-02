@@ -37,6 +37,14 @@
 
         let tasks = [];
 
+        const data = localStorage.getItem("tasks"); //localStrageのデータを文字列として取得
+        if (data) {
+            tasks = JSON.parse(data);
+        }
+        //Javaではできないが、JavaSciptだとnullならfalse、値あればtrue
+        render();
+        updateCount();
+
         //未完了の処理が何件か数える処理
         function updateCount() {
             const remainingTasks = tasks.filter(function (task) {
@@ -52,14 +60,6 @@
             // JSON.stringify(tasks); 配列 → 文字列
             // JSON.parse(data);      文字列 → 配列　にして”tasks”としてlocalStrageに保存する
         }
-
-        const data = localStorage.getItem("tasks"); //localStrageのデータを文字列として取得
-        if (data) {
-            tasks = JSON.parse(data);
-        }
-        //Javaではできないが、JavaSciptだとnullならfalse、値あればtrue
-        render();
-        updateCount();
 
         function render() {
 
