@@ -19,7 +19,7 @@ JavaScriptの基本的なDOM操作やイベント処理、localStorageを使っ�
 ・localStorage
 
 ## こだわったこと
-# HTMLを直接書き換えず、JavaScriptで画面を更新
+### HTMLを直接書き換えず、JavaScriptで画面を更新
 タスクを追加・削除・完了した際に、HTMLをその都度直接書き換えるのではなく、
 JacaScriptでDOMを操作して画面を更新する方法で実装しました。
 
