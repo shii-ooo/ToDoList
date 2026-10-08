@@ -5,37 +5,179 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToDoリスト</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&display=swap"
+        rel="stylesheet">
     <style>
-        .done {
+        body {
+            margin: 0;
+            background-color: #F3F1EC;
+            display: flex;
+            justify-content: center;
+            padding: 32px 16px;
+            font-family: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif;
+        }
+
+        .sheet {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0 0 4px;
+            letter-spacing: 0.24px;
+        }
+
+        .rest {
+            color: #6B6F63;
+            font-size: 14.4px;
+        }
+
+        #count {
+            color: #33492F;
+            margin: 5px;
+        }
+
+        input {
+            border-radius: 10px;
+            font-size: 15.2px;
+            font-family: inherit;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            border: 1.5px solid #dad6c8;
+            padding: 12px 14px;
+        }
+
+        input[type="submit"] {
+            background: #33492F;
+            color: #fff;
+            border: none;
+            padding: 0 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .tabs {
+            border-bottom: 1.5px solid #DAD6C8;
+            margin-bottom: 14px;
+        }
+
+        .filter {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            color: #6B6F63;
+            font-size: 14.08px;
+            cursor: pointer;
+        }
+
+        .tabs button.active {
+            color: #33492F;
+            border-bottom: solid #33492F;
+            font-weight: 700;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #ffff;
+            border: 1.5px solid #dad6c8;
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            gap: 10px;
+            color: #6B6F63;
+        }
+
+        .del {
+            background: none;
+            border: none;
+            margin-left: auto;
+            color: #C6603F;
+            font-size: 19.2px;
+            cursor: pointer;
+        }
+
+        .toggle {
+            width: 20px;
+            height: 20px;
+            flex: none;
+            border-radius: 6px;
+            border: 1.5px solid #4B6B4A;
+            margin-top: 2px;
+            background-color: #4B6B4A;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .doneText {
             text-decoration: line-through;
+        }
+
+        #error {
+            color: #C6603F;
         }
     </style>
 </head>
 
 <body>
-    <header>
-        <h1>しごとリスト</h1>
-        <p>残り<span id="count">0</span>件</p>
-    </header>
+    <div class="sheet">
 
-    <form id="form">
-        <input type="text" placeholder="やることを入力・・・">
-        <input type="submit" value="追加">
-    </form>
+        <header>
+            <h1>しごとリスト</h1>
+            <p class="rest">残り<span id="count">0</span>件</p>
+        </header>
 
-    <button class="filter">すべて</button>
-    <button class="filter">未完了</button>
-    <button class="filter">完了</button>
+        <p id="error"></p>
 
-    <ul id="list"></ul>
+        <form id="form">
+            <input type="text" placeholder="やることを入力・・・">
+            <input type="submit" value="追加">
+        </form>
+
+        <div class="tabs">
+            <button class="filter">すべて</button>
+            <button class="filter">未完了</button>
+            <button class="filter">完了</button>
+        </div>
+
+        <ul id="list"></ul>
+    </div>
 
     <script>
         const form = document.getElementById("form");
         const list = document.getElementById("list");
         const buttons = document.querySelectorAll(".filter");
         const count = document.getElementById("count");
+        const error = document.getElementById("error");
 
         let tasks = [];
+        let currentFilter = "すべて";
+
+        const data = localStorage.getItem("tasks"); //localStrageのデータを文字列として取得
+        if (data) {
+            tasks = JSON.parse(data);
+        }
+        //Javaではできないが、JavaSciptだとnullならfalse、値あればtrue
+        render();
+        updateCount();
 
         //　ストレージにあるデータをtasks[]に追加
         const data = localStorage.getItem("tasks");
@@ -56,16 +198,24 @@
         function update() {
             render();
             updateCount();
+
             localStorage.setItem("tasks", JSON.stringify(tasks));
         }
 
-        // HRMLを追加する
         function render() {
 
             list.innerHTML = "";
             tasks.forEach(function (task) {
                 const li = document.createElement("li");
-                li.textContent = task.text;
+
+                //フィルターで未完了を選択したまま追加したときにHTMLにCSSを保持する
+                if (currentFilter === "未完了" && task.done) {
+                    li.style.display = "none";
+                } else if (currentFilter === "完了" && !task.done) {
+                    li.style.display = "none";
+                } else {
+                    li.style.display = "";
+                }
 
                 if (task.done) {
                     li.classList.add("done");
@@ -73,11 +223,20 @@
 
                 li.dataset.id = task.id;
 
-                const doneButton = document.createElement("button");
-                doneButton.textContent = "完了";
+                const text = document.createElement("span");
+                text.textContent = task.text;
+
+                if (task.done) {
+                    text.classList.add("doneText");
+                }
+
+                const doneButton = document.createElement("button"); //HTMLに<button>を追加
+                doneButton.textContent = "✓"; //<button></button>が<button>完了</button>になる
+                doneButton.classList.add("toggle");
 
                 const deleteButton = document.createElement("button");
-                deleteButton.textContent = "削除";
+                deleteButton.textContent = "×";
+                deleteButton.classList.add("del");
 
                 doneButton.addEventListener("click", function () {
 
@@ -100,7 +259,8 @@
 
                 })
 
-                li.appendChild(doneButton);
+                li.appendChild(doneButton);//liの間に<button>を挿入
+                li.appendChild(text);//文字をつくってliについか
                 li.appendChild(deleteButton);
                 list.appendChild(li);
 
@@ -115,6 +275,13 @@
             event.preventDefault();
 
             const input = form.querySelector("input[type='text']");
+
+            //もし何も入力されなければ追加しない
+            if (input.value === "") {
+                error.textContent = "入力してください";
+                return;
+            }
+            error.textContent = "";
 
             tasks.push({
                 id: Date.now(),
@@ -132,6 +299,13 @@
         buttons.forEach(function (button) {
             button.addEventListener("click", function () {
                 console.log(button.textContent);
+                currentFilter = button.textContent;
+
+                buttons.forEach(function (button) {
+                    button.classList.remove("active");
+                });
+
+                button.classList.add("active");
 
                 const items = list.querySelectorAll("li");
 
